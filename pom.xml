@@ -6,8 +6,8 @@
     <version>1.0</version>
     <packaging>pom</packaging>
     <modules>
-        <module>embedded-jetty-template</module>
-        <module>embedded-jetty-template-test</module>
+        <module>embedded-jetty-server</module>
+        <module>embedded-jetty-server-demo</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

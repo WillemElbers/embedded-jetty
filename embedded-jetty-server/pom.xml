@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     
     <groupId>nl.we</groupId>
-    <artifactId>embedded-jetty-template</artifactId>
+    <artifactId>embedded-jetty-server</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
     
@@ -116,5 +116,5 @@
             </plugin>
         </plugins>
     </build>
-    
+    <name>embedded-jetty-server</name>
 </project>
