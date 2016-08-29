@@ -15,7 +15,7 @@
         </dependency>
         <dependency>
             <groupId>nl.we</groupId>
-            <artifactId>embedded-jetty-template</artifactId>
+            <artifactId>embedded-jetty-server</artifactId>
             <version>1.0</version>
         </dependency>
     </dependencies>
