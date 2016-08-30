@@ -1,5 +1,6 @@
 package nl.we.embedded.jetty.test;
 
+import nl.we.embedded.client.cli.ServerCLI;
 import nl.we.embedded.jetty.ServerMain;
 
 /**
@@ -11,9 +12,9 @@ public class Main {
         final ServerMain server = new ServerMain(TestApplication.class.getCanonicalName()) {
             @Override
             protected void load() {
-                
+                //Preload some data
             }
         };
-        server.start();
+        new ServerCLI(server).handleCLI(args);
     }
 }

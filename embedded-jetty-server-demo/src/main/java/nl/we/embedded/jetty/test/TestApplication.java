@@ -8,10 +8,8 @@ import nl.we.embedded.jetty.rest.DefaultApplication;
  */
 public class TestApplication extends DefaultApplication {
     
-    private final static String PACKAGES = "nl.we.embedded.jetty.test.resources";
-    
     public TestApplication() {
-        super(PACKAGES);
-        packages(PACKAGES);
+        super(new String[] {"nl.we.embedded.jetty.test.resources"});
     }
+    
 }

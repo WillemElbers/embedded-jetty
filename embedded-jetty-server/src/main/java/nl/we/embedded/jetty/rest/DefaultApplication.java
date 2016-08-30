@@ -2,7 +2,7 @@ package nl.we.embedded.jetty.rest;
 
 import io.swagger.jaxrs.config.BeanConfig;
 import nl.we.embedded.jetty.ServerConfig;
-import nl.we.jersey.filters.CORSFilter;
+import nl.we.jaxrs.filters.CORSFilter;
 import org.glassfish.jersey.server.ResourceConfig;
 
 /**
@@ -13,16 +13,20 @@ public class DefaultApplication extends ResourceConfig {
     
     protected final BeanConfig beanConfig = new BeanConfig();
     
-    public DefaultApplication(String resourcePackage) {        
+    public DefaultApplication(String[] resourcePackages) {    
+        //configure swagger
         beanConfig.setVersion("1.0.0");
         beanConfig.setSchemes(new String[]{"http"});
         beanConfig.setHost("localhost:"+ServerConfig.getInstance().getPort());
         beanConfig.setBasePath("/");
-        beanConfig.setResourcePackage(resourcePackage);//"nl.we.embedded.jetty.test.resources");
-        beanConfig.setScan(true);
-        
+        beanConfig.setResourcePackage(resourcePackages[0]);
+        beanConfig.setScan(true);        
         packages("io.swagger.jaxrs.listing");
-        //packages("nl.we.embedded.jetty.test.resources");
+        //add all packages to scan for resources
+        for(String resourcePackage :  resourcePackages) {
+            packages(resourcePackage);
+        }
+        //enable corst filter
         register(CORSFilter.class);
     }
 }

@@ -24,7 +24,7 @@ file:/Library/Java/JavaVirtualMachines/jdk1.8.0_31.jdk/Contents/Home/jre/lib/rt.
  */
 public class DependencyTest {
 
-    @Test
+    //@Test
     public void testDependencyOverlap() {
         JHades j = new JHades().overlappingJarsReport(); 
     }

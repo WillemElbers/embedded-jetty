@@ -1,6 +1,5 @@
 package nl.we.embedded.jetty;
 
-import nl.we.embedded.client.cli.StopServer;
 import java.util.HashMap;
 import java.util.Map;
 import org.eclipse.jetty.server.Handler;
@@ -21,7 +20,6 @@ public abstract class ServerMain {
     private final Server server; 
     private final int port;
     private final String applicationClassName;
-    
     
     public ServerMain(String applicationClassName) {
         this.port = ServerConfig.getInstance().getPort();
@@ -55,7 +53,6 @@ public abstract class ServerMain {
     protected abstract void load();
     
     public void start() throws Exception {
-        new StopServer().stop();
         loadBeforeStartup();
         logger.info("Starting server on port={}", port);
         Thread monitor = new ServerControl(server);
