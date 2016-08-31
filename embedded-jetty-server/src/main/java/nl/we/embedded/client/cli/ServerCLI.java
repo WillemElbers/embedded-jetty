@@ -3,12 +3,12 @@ package nl.we.embedded.client.cli;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.Properties;
 import nl.we.embedded.jetty.ServerCommand;
 import nl.we.embedded.jetty.ServerConfig;
 import nl.we.embedded.jetty.ServerMain;
@@ -36,6 +36,11 @@ public class ServerCLI {
     
     public ServerCLI(ServerMain server) {
         this.server = server;
+    }
+    
+    public ServerCLI configFromProperties(Properties props) {
+        ServerConfig.getInstance().loadFromProperties(props);
+        return this;
     }
     
     public void handleCLI(String[] args) throws Exception {        

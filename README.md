@@ -96,6 +96,13 @@ public class TaskResource {
         </action>
 ```
 
+## Logging
+
+log4j.properties:
+
+```
+```
+
 ## Controlling the server
 
 ```

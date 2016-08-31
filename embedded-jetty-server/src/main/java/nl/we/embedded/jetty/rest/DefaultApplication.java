@@ -15,10 +15,10 @@ public class DefaultApplication extends ResourceConfig {
     
     public DefaultApplication(String[] resourcePackages) {    
         //configure swagger
-        beanConfig.setVersion("1.0.0");
-        beanConfig.setSchemes(new String[]{"http"});
+        beanConfig.setVersion(ServerConfig.getInstance().getDocVersion());
+        beanConfig.setSchemes(ServerConfig.getInstance().getDocSchemes());
         beanConfig.setHost("localhost:"+ServerConfig.getInstance().getPort());
-        beanConfig.setBasePath("/");
+        beanConfig.setBasePath(ServerConfig.getInstance().getDocPath());
         beanConfig.setResourcePackage(resourcePackages[0]);
         beanConfig.setScan(true);        
         packages("io.swagger.jaxrs.listing");
