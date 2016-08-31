@@ -18,7 +18,7 @@ public class DefaultApplication extends ResourceConfig {
         beanConfig.setVersion(ServerConfig.getInstance().getDocVersion());
         beanConfig.setSchemes(ServerConfig.getInstance().getDocSchemes());
         beanConfig.setHost("localhost:"+ServerConfig.getInstance().getPort());
-        beanConfig.setBasePath(ServerConfig.getInstance().getDocPath());
+        beanConfig.setBasePath(ServerConfig.getInstance().getServerBasePath());
         beanConfig.setResourcePackage(resourcePackages[0]);
         beanConfig.setScan(true);        
         packages("io.swagger.jaxrs.listing");

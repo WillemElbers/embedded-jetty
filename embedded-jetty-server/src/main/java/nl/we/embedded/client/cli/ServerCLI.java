@@ -1,6 +1,7 @@
 package nl.we.embedded.client.cli;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -29,6 +30,7 @@ public class ServerCLI {
     public final static String OPT_START = "start";
     public final static String OPT_STOP = "stop";
     public final static String OPT_STATUS = "status";
+    public final static String OPT_CONFIG = "cfg";
     
     private final static Logger logger = LoggerFactory.getLogger(ServerCLI.class);
     
@@ -38,10 +40,10 @@ public class ServerCLI {
         this.server = server;
     }
     
-    public ServerCLI configFromProperties(Properties props) {
-        ServerConfig.getInstance().loadFromProperties(props);
-        return this;
-    }
+    //public ServerCLI configFromProperties(Properties props) {
+    //    ServerConfig.getInstance().loadFromProperties(props);
+    //    return this;
+   // }
     
     public void handleCLI(String[] args) throws Exception {        
         Options options = 
@@ -49,12 +51,19 @@ public class ServerCLI {
                 .addOption(OPT_HELP, false, "print this message" )
                 .addOption(OPT_START, false, "start server")
                 .addOption(OPT_STOP, false, "stop server")
-                .addOption(OPT_STATUS, false, "status of server");
+                .addOption(OPT_STATUS, false, "status of server")
+                .addOption(OPT_CONFIG, true, "path to config file");
         
         CommandLineParser parser = new DefaultParser();
         CommandLine line = parser.parse( options, args );
 
         if(line.hasOption(OPT_START)) {
+            ServerConfig cfg = ServerConfig.getInstance();
+            if(line.hasOption(OPT_CONFIG)) {
+                String cfgFile = line.getOptionValue(OPT_CONFIG);
+                cfg.loadFromFile(new File(cfgFile));
+            }
+            cfg.print();            
             startServer(line);
         } else if(line.hasOption(OPT_STOP)) {
             stopServer(line);

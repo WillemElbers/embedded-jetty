@@ -1,6 +1,12 @@
 package nl.we.embedded.jetty;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Properties;
+import java.util.logging.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -8,19 +14,22 @@ import java.util.Properties;
  */
 public class ServerConfig {
 
+    private final static Logger logger = LoggerFactory.getLogger(ServerConfig.class);
+    
     private static final int DEFAULT_PORT = 9090;
     private static final int DEFAULT_CONTROL_PORT = 9091;
     private static final String DEFAULT_CONTROL_HOST = "127.0.0.1";
     private static final String DEFAULT_DOC_VERSION = "1.0.0";
     private static final String DEFAULT_DOC_SCHEMES = "http";
-    private static final String DEFAULT_DOC_PATH = "/";
+    private static final String DEFAULT_SERVER_BASE_PATH = "/";
     
-    private static final String KEY_SERVER_PORT = "server.port";
-    private static final String KEY_SERVER_CONTROL_PORT = "server.control.port";
-    private static final String KEY_SERVER_CONTROL_HOST = "server.control.host";
-    private static final String KEY_DOC_VERSION = "doc.version";
-    private static final String KEY_DOC_SCHEMES = "doc.schemes";
-    private static final String KEY_DOC_PATH = "doc.path";
+    public static final String KEY_SERVER_PORT = "server.port";
+    public static final String KEY_SERVER_BASE_PATH = "server.base.path";
+    public static final String KEY_SERVER_CONTROL_PORT = "server.control.port";
+    public static final String KEY_SERVER_CONTROL_HOST = "server.control.host";
+    public static final String KEY_DOC_VERSION = "doc.version";
+    public static final String KEY_DOC_SCHEMES = "doc.schemes";
+    
 
     private static ServerConfig _instance;
     
@@ -36,15 +45,25 @@ public class ServerConfig {
     private String controlHost;
     private String docVersion;
     private String[] docSchemes;
-    private String docPath;
+    private String serverBasePath;
     
     private ServerConfig() {
-        this.port = DEFAULT_PORT;
-        this.controlPort = DEFAULT_CONTROL_PORT;
-        this.controlHost = DEFAULT_CONTROL_HOST;
+        loadFromProperties(new Properties());
     }
     
-    public void loadFromProperties(Properties props) {
+    public void loadFromFile(File file) {
+        logger.info("Loading properties from file: {}", file.getAbsolutePath());
+        Properties props;
+        try (FileInputStream input = new FileInputStream(file)) {
+            props = new Properties();
+            props.load(input);
+            loadFromProperties(props);
+        } catch (IOException ex) {
+            logger.error("Failed to load properties from file", ex);
+        }
+    }
+    
+    private void loadFromProperties(Properties props) {
         this.port = 
             Integer.parseInt(
                 props.getProperty(KEY_SERVER_PORT, String.valueOf(DEFAULT_PORT)));
@@ -52,9 +71,18 @@ public class ServerConfig {
             Integer.parseInt(
                 props.getProperty(KEY_SERVER_CONTROL_PORT, String.valueOf(DEFAULT_CONTROL_PORT)));
         this.controlHost = props.getProperty(KEY_SERVER_CONTROL_HOST, DEFAULT_CONTROL_HOST);
-        this.docPath = props.getProperty(DEFAULT_DOC_PATH, DEFAULT_DOC_PATH);
-        this.docSchemes = props.getProperty(DEFAULT_DOC_SCHEMES, DEFAULT_DOC_SCHEMES).split(",");
-        this.docVersion = props.getProperty(DEFAULT_DOC_VERSION, DEFAULT_DOC_VERSION);
+        this.serverBasePath = props.getProperty(KEY_SERVER_BASE_PATH, DEFAULT_SERVER_BASE_PATH);
+        this.docSchemes = props.getProperty(KEY_DOC_SCHEMES, DEFAULT_DOC_SCHEMES).split(",");
+        this.docVersion = props.getProperty(KEY_DOC_VERSION, DEFAULT_DOC_VERSION);
+    }
+    
+    public void print() {
+        logger.info("{}={}",KEY_SERVER_PORT, port);
+        logger.info("{}={}",KEY_SERVER_CONTROL_HOST, controlHost);
+        logger.info("{}={}",KEY_SERVER_CONTROL_PORT, controlPort);
+        logger.info("{}={}",KEY_SERVER_BASE_PATH, serverBasePath);
+        logger.info("{}={}",KEY_DOC_SCHEMES, docSchemes);
+        logger.info("{}={}",KEY_DOC_VERSION, docVersion);
     }
    
 
@@ -78,7 +106,7 @@ public class ServerConfig {
         return docSchemes;
     }
 
-    public String getDocPath() {
-        return docPath;
+    public String getServerBasePath() {
+        return serverBasePath;
     }
 }

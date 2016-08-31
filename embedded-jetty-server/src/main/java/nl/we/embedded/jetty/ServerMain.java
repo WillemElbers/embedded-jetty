@@ -77,7 +77,13 @@ public abstract class ServerMain {
         Map<String, String> map = new HashMap<>();
         map.put("javax.ws.rs.Application", applicationClassName);
         sh.setInitParameters(map);
-        root.addServlet(sh, "/*");
+        
+        String path = ServerConfig.getInstance().getServerBasePath();
+        if(!path.endsWith("/")) {
+            path += "/";
+        }
+        path += "*";
+        root.addServlet(sh, path);
         return root;
     }
 }
