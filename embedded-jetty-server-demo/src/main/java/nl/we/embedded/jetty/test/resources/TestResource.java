@@ -6,7 +6,6 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 /**
  *
@@ -21,9 +20,10 @@ public class TestResource {
     @ApiOperation(
         value = "Test endpoint",
         notes = "Just return a simple message to show this is working",
-        response = String.class)
-    public Response get() {
-        return Response.ok("it works").build();
+        response = TestModel.class)
+    public TestModel get() {
+        TestModel model = new TestModel(true, "it works");
+        return model;
     }
     
 }

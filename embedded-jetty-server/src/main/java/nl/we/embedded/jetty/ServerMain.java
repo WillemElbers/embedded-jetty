@@ -76,8 +76,9 @@ public abstract class ServerMain {
         ServletHolder sh = new ServletHolder(ServletContainer.class);
         Map<String, String> map = new HashMap<>();
         map.put("javax.ws.rs.Application", applicationClassName);
+        //map.put("jersey.config.server.provider.classnames", "nl.we.embedded.jetty.rest.providers.ObjectMapperContextResolver");
         sh.setInitParameters(map);
-        
+
         String path = ServerConfig.getInstance().getServerBasePath();
         if(!path.endsWith("/")) {
             path += "/";
