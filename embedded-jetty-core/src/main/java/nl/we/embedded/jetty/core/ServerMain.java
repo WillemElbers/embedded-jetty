@@ -1,4 +1,4 @@
-package nl.we.embedded.jetty;
+package nl.we.embedded.jetty.core;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,12 +19,14 @@ public abstract class ServerMain {
     
     private final Server server; 
     private final int port;
-    private final String applicationClassName;
+    //private final String applicationClassName;
+    private Handler handler;
     
-    public ServerMain(String applicationClassName) {
+    public ServerMain(/*String applicationClassName, Handler handler*/) {
+        //this.handler = handler;
         this.port = ServerConfig.getInstance().getPort();
         this.server = new Server(port);
-        this.applicationClassName = applicationClassName;
+        //this.applicationClassName = applicationClassName;
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
@@ -53,11 +55,14 @@ public abstract class ServerMain {
     protected abstract void load();
     
     public void start() throws Exception {
+        if(handler == null) {
+            throw new IllegalStateException("No handler configured");
+        }
         loadBeforeStartup();
         logger.info("Starting server on port={}", port);
         Thread monitor = new ServerControl(server);
         monitor.start();
-        server.setHandler(createRootHandler());
+        server.setHandler(handler);
         server.start();
         server.join();
     }
@@ -70,21 +75,27 @@ public abstract class ServerMain {
     private void join() throws InterruptedException {
         server.join();
     }
-
-    protected Handler createRootHandler() {
-        ServletContextHandler root = new ServletContextHandler(server, "/", ServletContextHandler.SESSIONS);
-        ServletHolder sh = new ServletHolder(ServletContainer.class);
-        Map<String, String> map = new HashMap<>();
-        map.put("javax.ws.rs.Application", applicationClassName);
-        //map.put("jersey.config.server.provider.classnames", "nl.we.embedded.jetty.rest.providers.ObjectMapperContextResolver");
-        sh.setInitParameters(map);
-
+    
+    public ServerMain setServletContextHandler(String urlPath, Class applicationClass) {
+        return setServletContextHandler(urlPath, applicationClass.getCanonicalName());
+    }
+    
+    public ServerMain setServletContextHandler(String urlPath, String applicationClassName) {
         String path = ServerConfig.getInstance().getServerBasePath();
         if(!path.endsWith("/")) {
             path += "/";
         }
         path += "*";
+        
+        logger.info("Path={}, application classname={}", path, applicationClassName);
+        
+        ServletContextHandler root = new ServletContextHandler(server, urlPath, ServletContextHandler.SESSIONS);
+        ServletHolder sh = new ServletHolder(ServletContainer.class);
+        Map<String, String> map = new HashMap<>();
+        map.put("javax.ws.rs.Application", applicationClassName);
+        sh.setInitParameters(map);
         root.addServlet(sh, path);
-        return root;
+        handler = root;
+        return this;
     }
 }

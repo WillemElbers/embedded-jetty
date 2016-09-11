@@ -1,20 +1,26 @@
 package nl.we.embedded.jetty.test;
 
-import nl.we.embedded.client.cli.ServerCLI;
-import nl.we.embedded.jetty.ServerMain;
-
+import nl.we.embedded.jetty.core.ServerMain;
+import nl.we.embedded.jetty.core.ServerDecorator;
+import nl.we.embedded.jetty.core.cli.ServerCLI;
 /**
  *
  * @author wilelb
  */
 public class Main {
-    public static void main(String[] args) throws Exception {       
-        final ServerMain server = new ServerMain(TestApplication.class.getCanonicalName()) {
+    public static void main(String[] args) throws Exception {      
+        final ServerMain server = new ServerMain() {
             @Override
             protected void load() {
                 //Preload some data
             }
         };
-        new ServerCLI(server).handleCLI(args);
+        final ServerDecorator decorator = new ServerDecorator() {
+            @Override
+            public void decorate(ServerMain server) {
+                server.setServletContextHandler("/", TestApplication.class);
+            }   
+        };
+        new ServerCLI(server).handleCLI(args, decorator);
     }
 }

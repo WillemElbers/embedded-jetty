@@ -1,4 +1,4 @@
-package nl.we.embedded.jetty;
+package nl.we.embedded.jetty.core;
 
 /**
  *

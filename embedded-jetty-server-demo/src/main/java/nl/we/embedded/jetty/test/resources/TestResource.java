@@ -38,8 +38,7 @@ public class TestResource {
         TestModel model = new TestModel(true, "this works too");
         return model;
     }
-    
-    /*
+    /*   
     @Path("/test3")
     @GET
     @ApiOperation(

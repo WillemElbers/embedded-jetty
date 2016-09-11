@@ -1,4 +1,4 @@
-package nl.we.embedded.client.cli;
+package nl.we.embedded.jetty.core.cli;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -9,10 +9,10 @@ import java.io.PrintWriter;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.Properties;
-import nl.we.embedded.jetty.ServerCommand;
-import nl.we.embedded.jetty.ServerConfig;
-import nl.we.embedded.jetty.ServerMain;
+import nl.we.embedded.jetty.core.ServerCommand;
+import nl.we.embedded.jetty.core.ServerConfig;
+import nl.we.embedded.jetty.core.ServerDecorator;
+import nl.we.embedded.jetty.core.ServerMain;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -40,12 +40,7 @@ public class ServerCLI {
         this.server = server;
     }
     
-    //public ServerCLI configFromProperties(Properties props) {
-    //    ServerConfig.getInstance().loadFromProperties(props);
-    //    return this;
-   // }
-    
-    public void handleCLI(String[] args) throws Exception {        
+    public void handleCLI(String[] args, ServerDecorator decorator) throws Exception {        
         Options options = 
             new Options()
                 .addOption(OPT_HELP, false, "print this message" )
@@ -63,7 +58,8 @@ public class ServerCLI {
                 String cfgFile = line.getOptionValue(OPT_CONFIG);
                 cfg.loadFromFile(new File(cfgFile));
             }
-            cfg.print();            
+            cfg.print();    
+            decorator.decorate(server);
             startServer(line);
         } else if(line.hasOption(OPT_STOP)) {
             stopServer(line);

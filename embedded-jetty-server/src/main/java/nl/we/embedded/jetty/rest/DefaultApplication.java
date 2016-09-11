@@ -1,7 +1,7 @@
 package nl.we.embedded.jetty.rest;
 
 import io.swagger.jaxrs.config.BeanConfig;
-import nl.we.embedded.jetty.ServerConfig;
+import nl.we.embedded.jetty.core.ServerConfig;
 import nl.we.embedded.jetty.rest.providers.JsonObjectMapperProvider;
 import nl.we.jaxrs.filters.CORSFilter;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -23,8 +23,12 @@ public class DefaultApplication extends ResourceConfig {
         beanConfig.setBasePath(ServerConfig.getInstance().getServerBasePath());
         beanConfig.setResourcePackage(resourcePackages[0]);
         beanConfig.setScan(true);        
-        packages("io.swagger.jaxrs.listing");
-       
+        //packages("io.swagger.jaxrs.listing");
+        //packages("io.swagger.jaxrs.json");
+        register(io.swagger.jaxrs.listing.ApiListingResource.class);
+        register(io.swagger.jaxrs.listing.SwaggerSerializers.class);
+        
+        
         //add all packages to scan for resources
         for(String resourcePackage :  resourcePackages) {
             packages(resourcePackage);
