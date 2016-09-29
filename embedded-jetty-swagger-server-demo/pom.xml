@@ -8,11 +8,11 @@
         <artifactId>embedded-jetty</artifactId>
         <version>1.0</version>
     </parent>
-    <artifactId>embedded-jetty-server-demo</artifactId>
+    <artifactId>embedded-jetty-swagger-server-demo</artifactId>
     <version>1.0</version>
     
     <packaging>jar</packaging>
-    <name>embedded-jetty-server-demo</name>
+    <name>embedded-jetty-swagger-server-demo</name>
     
     <dependencies>
         <dependency>
@@ -20,14 +20,16 @@
             <artifactId>slf4j-log4j12</artifactId>
             <version>1.7.21</version>
         </dependency>
+        <!--
         <dependency>
             <groupId>nl.we</groupId>
             <artifactId>embedded-jetty-core</artifactId>
             <version>1.0</version>
         </dependency>
+        -->
         <dependency>
             <groupId>nl.we</groupId>
-            <artifactId>embedded-jetty-server</artifactId>
+            <artifactId>embedded-jetty-swagger-server</artifactId>
             <version>1.0</version>
         </dependency>
     </dependencies>
