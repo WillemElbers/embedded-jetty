@@ -10,8 +10,9 @@
     
     <modules>
         <module>embedded-jetty-core</module>
-        <module>embedded-jetty-swagger-server</module>
         <module>embedded-jetty-server</module>
+        <module>embedded-jetty-server-demo</module>
+        <module>embedded-jetty-swagger-server</module>
         <module>embedded-jetty-swagger-server-demo</module>
     </modules>
     
