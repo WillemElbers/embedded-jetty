@@ -96,7 +96,7 @@ public abstract class ServerMain {
         map.put("javax.ws.rs.Application", applicationClassName);
         sh.setInitParameters(map);
         root.addServlet(sh, path);
-        return setHandler(handler);
+        return setHandler(root);
     }
     
     public ServerMain setHandler(Handler handler) {
