@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.servlet.ServletContainer;
@@ -95,7 +96,16 @@ public abstract class ServerMain {
         map.put("javax.ws.rs.Application", applicationClassName);
         sh.setInitParameters(map);
         root.addServlet(sh, path);
-        handler = root;
+        return setHandler(root);
+    }
+    
+    public ServerMain setHandler(Handler handler) {
+        this.handler = handler;
+        return this;
+    }
+    
+    public ServerMain setHandler(HandlerList handler) {
+        this.handler = handler;
         return this;
     }
 }
