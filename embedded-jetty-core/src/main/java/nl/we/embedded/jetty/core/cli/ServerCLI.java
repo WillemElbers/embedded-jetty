@@ -9,6 +9,8 @@ import java.io.PrintWriter;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import nl.we.embedded.jetty.core.ServerCommand;
 import nl.we.embedded.jetty.core.ServerConfig;
 import nl.we.embedded.jetty.core.ServerDecorator;
@@ -36,11 +38,22 @@ public class ServerCLI {
     
     private final ServerMain server;
     
+    private static enum ServerState {
+        STOPPED,
+        STOPPING,
+        RUNNING,
+        UNKOWN
+    } 
+    
     public ServerCLI(ServerMain server) {
         this.server = server;
     }
     
-    public void handleCLI(String[] args, ServerDecorator decorator) throws Exception {        
+    public void handleCLI(String[] args, ServerDecorator decorator) throws Exception {
+        handleCLI(args, decorator, new ArrayList<PreStartAction>());
+    }
+    
+    public void handleCLI(String[] args, ServerDecorator decorator, List<PreStartAction> preStartActions) throws Exception {
         Options options = 
             new Options()
                 .addOption(OPT_HELP, false, "print this message" )
@@ -59,7 +72,23 @@ public class ServerCLI {
                 cfg.loadFromFile(new File(cfgFile));
             }
             cfg.print();    
+            
+            if(cfg.getAutoStop()) {
+                logger.info("Auto stop enabled; Stopping running server");
+                stopServer(line);
+                //Wait for the server to stop
+                //TODO: wait for server to actually stop
+                try {
+                    Thread.sleep(1000);
+                } catch(InterruptedException ex) {
+                    logger.debug("", ex);
+                }
+            }
+            
             decorator.decorate(server);
+            for(PreStartAction action : preStartActions) {
+                action.execute();
+            }
             startServer(line);
         } else if(line.hasOption(OPT_STOP)) {
             stopServer(line);
@@ -79,30 +108,50 @@ public class ServerCLI {
     }
     
     private void startServer(CommandLine line) throws Exception {
-        logger.info("startServer");
+        logger.info("Staring server");
         server.start();
     }
     
     private void stopServer(CommandLine line) {
-        logger.info("stopServer");
-        sendCommandToServer(ServerCommand.STOP);
+        logger.debug("Stopping server");
+        String response = sendCommandToServer(ServerCommand.STOP);
+        if(response == null) {
+            logger.debug("Stop server response is null");
+        } else {
+            logger.debug("Stop server response is {}", response);
+        }
     }
     
-    private void serverStatus(CommandLine line) {
-        sendCommandToServer(ServerCommand.STATUS);
+    private ServerState serverStatus(CommandLine line) {
+        logger.debug("Geting server status");
+        ServerState result;
+        String response = sendCommandToServer(ServerCommand.STATUS);
+        if(response == null) {
+            result = ServerState.STOPPED;
+        } else {
+            if(response.equalsIgnoreCase("running")) {
+                result = ServerState.RUNNING;
+            } else {
+                result = ServerState.UNKOWN;
+            }
+        }
+        logger.debug("Server status: {}", result);
+        return result;
     }
     
-    private void sendCommandToServer(ServerCommand command) {
+    private String sendCommandToServer(ServerCommand command) {
+        String response = null;
+        Socket s = null;
         try {
-            Socket s = new Socket(
+            s = new Socket(
                 InetAddress.getByName(ServerConfig.getInstance().getControlHost()), 
                 ServerConfig.getInstance().getControlPort());
-            PrintWriter writer = new PrintWriter(new OutputStreamWriter(s.getOutputStream()));
-
+            PrintWriter writer = 
+                new PrintWriter(new OutputStreamWriter(s.getOutputStream()));
             BufferedReader br = 
                 new BufferedReader(new InputStreamReader(s.getInputStream()));
             
-            logger.info("Sending jetty stop request");
+            logger.trace("Sending {} command to server", command);
             writer.println(command.toString());
             writer.flush();
             
@@ -111,14 +160,24 @@ public class ServerCLI {
             while((line = br.readLine()) != null) {
                 builder.append(line);
             }
-            logger.info("Response: {}", builder.toString());
-            
-            s.close();
+            response = builder.toString();
+            logger.trace("Response: {}", response);
         } catch(ConnectException ex) {
-            logger.info("Cannot connect to server. Not running?");
-            logger.debug("", ex);
+            if(!ex.getMessage().equalsIgnoreCase("Connection refused")) {
+                logger.info("Cannot connect to server. Not running?");
+                logger.debug("", ex);
+            }
         }  catch(IOException ex) {
             logger.error("Failed to stop server", ex);
+        } finally {
+            if(s != null) {
+                try {
+                    s.close();
+                } catch(IOException ex) {
+                    logger.error("Failed to close socket", ex);
+                }
+            }
         }
+        return response;
     }
 }

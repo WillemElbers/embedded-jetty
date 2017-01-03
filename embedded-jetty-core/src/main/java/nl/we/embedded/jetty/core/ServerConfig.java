@@ -3,6 +3,7 @@ package nl.we.embedded.jetty.core;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +22,7 @@ public class ServerConfig {
     private static final String DEFAULT_DOC_VERSION = "1.0.0";
     private static final String DEFAULT_DOC_SCHEMES = "http";
     private static final String DEFAULT_SERVER_BASE_PATH = "/";
+    private static final String DEFAULT_AUTO_STOP = Boolean.TRUE.toString();
     
     public static final String KEY_SERVER_PORT = "server.port";
     public static final String KEY_SERVER_BASE_PATH = "server.base.path";
@@ -28,7 +30,7 @@ public class ServerConfig {
     public static final String KEY_SERVER_CONTROL_HOST = "server.control.host";
     public static final String KEY_DOC_VERSION = "doc.version";
     public static final String KEY_DOC_SCHEMES = "doc.schemes";
-    
+    public static final String KEY_AUTO_STOP = "auto.stop";
 
     private static ServerConfig _instance;
     
@@ -45,13 +47,31 @@ public class ServerConfig {
     private String docVersion;
     private String[] docSchemes;
     private String serverBasePath;
+    private Boolean autoStop;
+    
+    private Properties props;
     
     private ServerConfig() {
-        loadFromProperties(new Properties());
+        String resource = "/config.properties";
+        InputStream in = getClass().getResourceAsStream(resource);
+        if(in != null) {
+            logger.debug("Loading from resource: {}", resource);
+            try {
+                Properties props = new Properties();
+                props.load(in);
+                loadFromProperties(props);
+            } catch(IOException ex) {
+                logger.debug("Failed to load from resource", ex);
+                loadFromProperties(new Properties());
+            }
+        } else {
+            logger.debug("Resource not found");
+            loadFromProperties(new Properties());
+        }
     }
     
     public void loadFromFile(File file) {
-        logger.info("Loading properties from file: {}", file.getAbsolutePath());
+        logger.debug("Loading properties from file: {}", file.getAbsolutePath());
         Properties props;
         try (FileInputStream input = new FileInputStream(file)) {
             props = new Properties();
@@ -63,6 +83,7 @@ public class ServerConfig {
     }
     
     private void loadFromProperties(Properties props) {
+        this.props = props;
         this.port = 
             Integer.parseInt(
                 props.getProperty(KEY_SERVER_PORT, String.valueOf(DEFAULT_PORT)));
@@ -73,6 +94,7 @@ public class ServerConfig {
         this.serverBasePath = props.getProperty(KEY_SERVER_BASE_PATH, DEFAULT_SERVER_BASE_PATH);
         this.docSchemes = props.getProperty(KEY_DOC_SCHEMES, DEFAULT_DOC_SCHEMES).split(",");
         this.docVersion = props.getProperty(KEY_DOC_VERSION, DEFAULT_DOC_VERSION);
+        this.autoStop = Boolean.valueOf(props.getProperty(KEY_AUTO_STOP, DEFAULT_AUTO_STOP));
     }
     
     public void print() {
@@ -107,5 +129,13 @@ public class ServerConfig {
 
     public String getServerBasePath() {
         return serverBasePath;
+    }
+    
+    public String getProperty(String propertyName) {
+        return this.props.getProperty(propertyName);
+    }
+
+    public Boolean getAutoStop() {
+        return autoStop;
     }
 }
