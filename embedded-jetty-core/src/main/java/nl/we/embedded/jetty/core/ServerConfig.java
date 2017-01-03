@@ -46,6 +46,8 @@ public class ServerConfig {
     private String[] docSchemes;
     private String serverBasePath;
     
+    private Properties props;
+    
     private ServerConfig() {
         loadFromProperties(new Properties());
     }
@@ -63,6 +65,7 @@ public class ServerConfig {
     }
     
     private void loadFromProperties(Properties props) {
+        this.props = props;
         this.port = 
             Integer.parseInt(
                 props.getProperty(KEY_SERVER_PORT, String.valueOf(DEFAULT_PORT)));
@@ -107,5 +110,9 @@ public class ServerConfig {
 
     public String getServerBasePath() {
         return serverBasePath;
+    }
+    
+    public String getProperty(String propertyName) {
+        return this.props.getProperty(propertyName);
     }
 }
