@@ -38,6 +38,13 @@ public class ServerCLI {
     
     private final ServerMain server;
     
+    private static enum ServerState {
+        STOPPED,
+        STOPPING,
+        RUNNING,
+        UNKOWN
+    } 
+    
     public ServerCLI(ServerMain server) {
         this.server = server;
     }
@@ -65,6 +72,19 @@ public class ServerCLI {
                 cfg.loadFromFile(new File(cfgFile));
             }
             cfg.print();    
+            
+            if(cfg.getAutoStop()) {
+                logger.info("Auto stop enabled; Stopping running server");
+                stopServer(line);
+                //Wait for the server to stop
+                //TODO: wait for server to actually stop
+                try {
+                    Thread.sleep(1000);
+                } catch(InterruptedException ex) {
+                    logger.debug("", ex);
+                }
+            }
+            
             decorator.decorate(server);
             for(PreStartAction action : preStartActions) {
                 action.execute();
@@ -88,22 +108,35 @@ public class ServerCLI {
     }
     
     private void startServer(CommandLine line) throws Exception {
-        logger.info("startServer");
+        logger.info("Staring server");
         server.start();
     }
     
     private void stopServer(CommandLine line) {
-        logger.info("stopServer");
+        logger.debug("Stopping server");
         String response = sendCommandToServer(ServerCommand.STOP);
         if(response == null) {
-            
+            logger.debug("Stop server response is null");
         } else {
-            
+            logger.debug("Stop server response is {}", response);
         }
     }
     
-    private void serverStatus(CommandLine line) {
-        sendCommandToServer(ServerCommand.STATUS);
+    private ServerState serverStatus(CommandLine line) {
+        logger.debug("Geting server status");
+        ServerState result;
+        String response = sendCommandToServer(ServerCommand.STATUS);
+        if(response == null) {
+            result = ServerState.STOPPED;
+        } else {
+            if(response.equalsIgnoreCase("running")) {
+                result = ServerState.RUNNING;
+            } else {
+                result = ServerState.UNKOWN;
+            }
+        }
+        logger.debug("Server status: {}", result);
+        return result;
     }
     
     private String sendCommandToServer(ServerCommand command) {
@@ -113,12 +146,12 @@ public class ServerCLI {
             s = new Socket(
                 InetAddress.getByName(ServerConfig.getInstance().getControlHost()), 
                 ServerConfig.getInstance().getControlPort());
-            PrintWriter writer = new PrintWriter(new OutputStreamWriter(s.getOutputStream()));
-
+            PrintWriter writer = 
+                new PrintWriter(new OutputStreamWriter(s.getOutputStream()));
             BufferedReader br = 
                 new BufferedReader(new InputStreamReader(s.getInputStream()));
             
-            logger.info("Sending jetty stop request");
+            logger.trace("Sending {} command to server", command);
             writer.println(command.toString());
             writer.flush();
             
@@ -128,10 +161,12 @@ public class ServerCLI {
                 builder.append(line);
             }
             response = builder.toString();
-            logger.debug("Response: {}", response);
+            logger.trace("Response: {}", response);
         } catch(ConnectException ex) {
-            logger.info("Cannot connect to server. Not running?");
-            logger.debug("", ex);
+            if(!ex.getMessage().equalsIgnoreCase("Connection refused")) {
+                logger.info("Cannot connect to server. Not running?");
+                logger.debug("", ex);
+            }
         }  catch(IOException ex) {
             logger.error("Failed to stop server", ex);
         } finally {
