@@ -9,6 +9,8 @@ import java.io.PrintWriter;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import nl.we.embedded.jetty.core.ServerCommand;
 import nl.we.embedded.jetty.core.ServerConfig;
 import nl.we.embedded.jetty.core.ServerDecorator;
@@ -40,7 +42,11 @@ public class ServerCLI {
         this.server = server;
     }
     
-    public void handleCLI(String[] args, ServerDecorator decorator) throws Exception {        
+    public void handleCLI(String[] args, ServerDecorator decorator) throws Exception {
+        handleCLI(args, decorator, new ArrayList<PreStartAction>());
+    }
+    
+    public void handleCLI(String[] args, ServerDecorator decorator, List<PreStartAction> preStartActions) throws Exception {
         Options options = 
             new Options()
                 .addOption(OPT_HELP, false, "print this message" )
@@ -60,6 +66,9 @@ public class ServerCLI {
             }
             cfg.print();    
             decorator.decorate(server);
+            for(PreStartAction action : preStartActions) {
+                action.execute();
+            }
             startServer(line);
         } else if(line.hasOption(OPT_STOP)) {
             stopServer(line);
@@ -85,16 +94,23 @@ public class ServerCLI {
     
     private void stopServer(CommandLine line) {
         logger.info("stopServer");
-        sendCommandToServer(ServerCommand.STOP);
+        String response = sendCommandToServer(ServerCommand.STOP);
+        if(response == null) {
+            
+        } else {
+            
+        }
     }
     
     private void serverStatus(CommandLine line) {
         sendCommandToServer(ServerCommand.STATUS);
     }
     
-    private void sendCommandToServer(ServerCommand command) {
+    private String sendCommandToServer(ServerCommand command) {
+        String response = null;
+        Socket s = null;
         try {
-            Socket s = new Socket(
+            s = new Socket(
                 InetAddress.getByName(ServerConfig.getInstance().getControlHost()), 
                 ServerConfig.getInstance().getControlPort());
             PrintWriter writer = new PrintWriter(new OutputStreamWriter(s.getOutputStream()));
@@ -111,14 +127,22 @@ public class ServerCLI {
             while((line = br.readLine()) != null) {
                 builder.append(line);
             }
-            logger.info("Response: {}", builder.toString());
-            
-            s.close();
+            response = builder.toString();
+            logger.debug("Response: {}", response);
         } catch(ConnectException ex) {
             logger.info("Cannot connect to server. Not running?");
             logger.debug("", ex);
         }  catch(IOException ex) {
             logger.error("Failed to stop server", ex);
+        } finally {
+            if(s != null) {
+                try {
+                    s.close();
+                } catch(IOException ex) {
+                    logger.error("Failed to close socket", ex);
+                }
+            }
         }
+        return response;
     }
 }
